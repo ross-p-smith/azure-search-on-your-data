@@ -66,8 +66,8 @@ param clientAppId string = ''
 // Used for optional CORS support for alternate frontends
 param allowedOrigin string = '' // should start with https://, shouldn't end with a /
 
-// @description('Id of the user or app to assign application roles')
-// param principalId string = ''
+@description('Id of the user or app to assign application roles')
+param principalId string = ''
 
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -232,18 +232,23 @@ module storage 'core/storage/storage-account.bicep' = {
   }
 }
 
-// USER ROLES
-// module openAiRoleUser 'core/security/role.bicep' = if (openAiHost == 'azure') {
-//   scope: openAiResourceGroup
-//   name: 'openai-role-user'
-//   params: {
-//     principalId: principalId
-//     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-//     principalType: 'User'
-//   }
-// }
 
-// module formRecognizerRoleUser 'core/security/role.bicep' = {
+// Please refer to this article for more information on RBAC:
+// https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/use-your-data?tabs=ai-search#azure-role-based-access-controls-azure-rbac
+
+// Cognitive Services OpenAI User
+module openAiRoleUser 'core/security/role.bicep' = if (openAiHost == 'azure') {
+  scope: openAiResourceGroup
+  name: 'openai-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+    principalType: 'User'
+  }
+}
+
+// Cognitive Services User
+// module formRecognizer 'core/security/role.bicep' = {
 //   scope: formRecognizerResourceGroup
 //   name: 'formrecognizer-role-user'
 //   params: {
@@ -253,6 +258,7 @@ module storage 'core/storage/storage-account.bicep' = {
 //   }
 // }
 
+// Storage Blob Data Reader
 // module storageRoleUser 'core/security/role.bicep' = {
 //   scope: storageResourceGroup
 //   name: 'storage-role-user'
@@ -263,16 +269,18 @@ module storage 'core/storage/storage-account.bicep' = {
 //   }
 // }
 
-// module storageContribRoleUser 'core/security/role.bicep' = {
-//   scope: storageResourceGroup
-//   name: 'storage-contribrole-user'
-//   params: {
-//     principalId: principalId
-//     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-//     principalType: 'User'
-//   }
-// }
+// Storage Blob Data Contributor
+module storageContribRoleUser 'core/security/role.bicep' = {
+  scope: storageResourceGroup
+  name: 'storage-contribrole-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: 'User'
+  }
+}
 
+// Search Index Data Reader
 // module searchRoleUser 'core/security/role.bicep' = {
 //   scope: searchServiceResourceGroup
 //   name: 'search-role-user'
@@ -283,37 +291,40 @@ module storage 'core/storage/storage-account.bicep' = {
 //   }
 // }
 
-// module searchContribRoleUser 'core/security/role.bicep' = {
-//   scope: searchServiceResourceGroup
-//   name: 'search-contrib-role-user'
-//   params: {
-//     principalId: principalId
-//     roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-//     principalType: 'User'
-//   }
-// }
+// Search Index Data Contributor
+module searchContribRoleUser 'core/security/role.bicep' = {
+  scope: searchServiceResourceGroup
+  name: 'search-contrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+    principalType: 'User'
+  }
+}
 
-// module searchSvcContribRoleUser 'core/security/role.bicep' = {
-//   scope: searchServiceResourceGroup
-//   name: 'search-svccontrib-role-user'
-//   params: {
-//     principalId: principalId
-//     roleDefinitionId: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
-//     principalType: 'User'
-//   }
-// }
+// Search Service Contributor
+module searchSvcContribRoleUser 'core/security/role.bicep' = {
+  scope: searchServiceResourceGroup
+  name: 'search-svccontrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+    principalType: 'User'
+  }
+}
 
-// // SYSTEM IDENTITIES
-// module openAiRoleBackend 'core/security/role.bicep' = if (openAiHost == 'azure') {
-//   scope: openAiResourceGroup
-//   name: 'openai-role-backend'
-//   params: {
-//     principalId: backend.outputs.identityPrincipalId
-//     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-//     principalType: 'ServicePrincipal'
-//   }
-// }
+// Cognitive Services OpenAI User
+module openAiRoleBackend 'core/security/role.bicep' = if (openAiHost == 'azure') {
+  scope: openAiResourceGroup
+  name: 'openai-role-backend'
+  params: {
+    principalId: backend.outputs.identityPrincipalId
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+    principalType: 'ServicePrincipal'
+  }
+}
 
+// Storage Blob Data Reader
 // module storageRoleBackend 'core/security/role.bicep' = {
 //   scope: storageResourceGroup
 //   name: 'storage-role-backend'
@@ -324,6 +335,7 @@ module storage 'core/storage/storage-account.bicep' = {
 //   }
 // }
 
+// Search Index Data Reader
 // module searchRoleBackend 'core/security/role.bicep' = {
 //   scope: searchServiceResourceGroup
 //   name: 'search-role-backend'

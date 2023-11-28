@@ -7,8 +7,8 @@ param sku object = {
   name: 'standard'
 }
 
-param authOptions object = {}
-param disableLocalAuth bool = false
+// We cannot allow API Keys if we are going to restrict network access
+param disableLocalAuth bool = true
 param disabledDataExfiltrationOptions array = []
 param encryptionWithCmk object = {
   enforcement: 'Unspecified'
@@ -44,7 +44,6 @@ resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
     type: 'SystemAssigned'
   }
   properties: {
-    authOptions: authOptions
     disableLocalAuth: disableLocalAuth
     disabledDataExfiltrationOptions: disabledDataExfiltrationOptions
     encryptionWithCmk: encryptionWithCmk
